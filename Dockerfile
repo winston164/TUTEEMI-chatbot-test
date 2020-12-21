@@ -6,9 +6,9 @@ COPY ./ ./
 # system graphviz
 RUN apt-get update
 RUN apt-get install -y graphviz python3-dev graphviz libgraphviz-dev pkg-config
-RUN ls /usr/local/include/ | grep graphviz
+# RUN ls /usr/local/include/ | grep graphviz
 
-RUN pip install --install-option="--include-path=/usr/local/include/" --install-option="--library-path=/usr/local/lib/" pygraphviz
+# RUN pip install --install-option="--include-path=/usr/local/include/" --install-option="--library-path=/usr/local/lib/" pygraphviz
 RUN pip install -U pip
 RUN pip install -r requirements.txt
 
