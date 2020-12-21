@@ -4,6 +4,9 @@ services:
     image: toc:latest
     container_name: linebot
     restart: always
-    env_file: .env
+    environment: 
+        - LINE_CHANNEL_ACCESS_TOKEN
+        - LINE_CHANNEL_SECRET
+        - FLASK_ENV
     ports:
         - "5000:5000"
