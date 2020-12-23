@@ -41,6 +41,11 @@ def receive():
     handleTrigger(machines[user_id].state, reply_token, user_id, message)
     return jsonify({})
 
+@app.route('/timetreewebhook', methods=['POST'])
+def timetreewebhook():
+    webhook = json.loads(request.data.decode("utf-8"))
+    print(webhook)
+    return 'ok'
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
