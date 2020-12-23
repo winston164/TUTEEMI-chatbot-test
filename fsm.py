@@ -11,7 +11,7 @@ class TocMachine(GraphMachine):
         self.machine = GraphMachine(
             model=self,
             **{
-                "states" : [
+                "states": [
                     'init',
                     'options',
                     'question',
@@ -19,7 +19,7 @@ class TocMachine(GraphMachine):
                     'intermediate',
                     'graph',
                 ],
-                "transitions" : [
+                "transitions": [
                     {
                         'trigger': 'advance',
                         'source': 'init',
@@ -71,8 +71,8 @@ class TocMachine(GraphMachine):
                         'dest': 'summation',
                     },
                 ],
-                "initial" : 'init',
-                "auto_transitions" : False,
+                "initial": 'init',
+                "auto_transitions": False,
             }
         )
 
@@ -126,18 +126,158 @@ class TocMachine(GraphMachine):
         LineAPI.send_reply_message(reply_token, options_str)
 
     def on_enter_question(self, reply_token, text):
-        LineAPI.send_reply_message(reply_token, f"[Question] Your problem is submitted at {datetime.now().__str__()}\n{text}")
+        LineAPI.send_reply_message(
+            reply_token, f"[Question] Your problem is submitted at {datetime.now().__str__()}\n{text}")
         self.go_back_options(reply_token, text)
 
     def on_enter_summation(self, reply_token, text):
-        LineAPI.send_reply_message(reply_token, "[Summation] Enter number to sum, if you reply non-digit number, you will be redirected to state: options")
+        LineAPI.send_reply_message(
+            reply_token, "[Summation] Enter number to sum, if you reply non-digit number, you will be redirected to state: options")
 
     def on_enter_intermediate(self, reply_token, text):
         self.sum += int(text)
-        LineAPI.send_reply_message(reply_token, f"[Intermediate] Summation value now is {self.sum}")
+        LineAPI.send_reply_message(
+            reply_token, f"[Intermediate] Summation value now is {self.sum}")
         self.go_back_summation(reply_token, text)
 
     def on_enter_graph(self, reply_token, text):
         TocMachine().get_graph().draw('fsm.png', prog='dot', format='png')
         LineAPI.send_fsm_graph(reply_token)
         self.go_back_options(reply_token, text)
+
+
+class chatClientFSM(object):
+    """
+    docstring
+    """
+    fsm_definition = {
+        "states": [
+            'main',
+            'price',
+            'tutors_sample',
+            'schedule_class',
+            'sample_week',
+            'available_tutors',
+            'set_class',
+            'get_phone',
+            'confirm_data',
+            'book_class',
+            'query_schedule',
+            'show_schedule',
+            'rate_class'
+        ],
+
+        "transitions": [
+            {
+                'trigger': 'price_query',
+                'source': 'main',
+                'dest': 'price'
+            },
+            {
+                'trigger': 'tutors',
+                'source': 'price',
+                'dest': 'tutors_sample'
+            },
+            {
+                'trigger': 're_sample',
+                'source': 'tutors_sample',
+                'dest': 'tutors_sample'
+            },
+            {
+                'trigger': 'tutors',
+                'source': 'main',
+                'dest': 'tutors_sample'
+            },
+            {
+                'trigger': 'schedule',
+                'source': 'tutors_sample',
+                'dest': 'schedule_class'
+            },
+            {
+                'trigger': 'week',
+                'source': 'schedule_class',
+                'dest': 'sample_week'
+            },
+            {
+                'trigger': 'date',
+                'source': 'schedule_class',
+                'dest': 'available_tutors'
+            },
+            {
+                'trigger': 're_sample',
+                'source': 'sample_week',
+                'dest': 'sample_week'
+            },
+            {
+                'trigger': 'set',
+                'source': 'sample_week',
+                'dest': 'set_class'
+            },
+            {
+                'trigger': 'date',
+                'source': 'sample_week',
+                'dest': 'available_tutors'
+            },
+            {
+                'trigger': 're_sample',
+                'source': 'available_tutors',
+                'dest': 'available_tutors'
+            },
+            {
+                'trigger': 'date',
+                'source': 'available_tutors',
+                'dest': 'available_tutors'
+            },
+            {
+                'trigger': 'set',
+                'source': 'available_tutors',
+                'dest': 'set_class'
+            },
+            {
+                'trigger': 'name',
+                'source': 'set_class',
+                'dest': 'get_phone'
+            },
+            {
+                'trigger': 'not_phone',
+                'source': 'get_phone',
+                'dest': 'get_phone'
+            },
+            {
+                'trigger': 'phone',
+                'source': 'get_phone',
+                'dest': 'confirm_data'
+            },
+            {
+                'trigger': 'no',
+                'source': 'confirm_data',
+                'dest': 'set_class'
+            },
+            {
+                'trigger': 'yes',
+                'source': 'confirm_data',
+                'dest': 'book_class'
+            },
+            {
+                'trigger': 'main',
+                'source': '*',
+                'dest': 'main'
+            },
+            {
+                'trigger': 'schedule',
+                'source': 'main',
+                'dest': 'schedule_class'
+            }
+
+        ],
+        "initial": 'init',
+        "auto_transitions": False,
+    }
+
+    def __init__(self):
+        self.machine = GraphMachine(model=self, **chatClientFSM.fsm_definition)
+
+
+if __name__ == '__main__':
+    mach = chatClientFSM()
+    mach.get_graph().draw('fsm_test.png', prog='dot', format='png')
