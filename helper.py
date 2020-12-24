@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 from linebot import LineBotApi
-from linebot.models import TextSendMessage, ImageSendMessage
+from linebot.models import TextSendMessage, ImageSendMessage, QuickReply, QuickReplyButton, MessageAction
 from linebot.exceptions import LineBotApiError
 
 
@@ -21,15 +21,27 @@ def webhook_parser(webhook):
 
 class LineAPI:
     @staticmethod
-    def send_reply_message(reply_token, reply_msg):
+    def send_reply_message(reply_token, reply_msg, quickReply = None):
+        repply = TextSendMessage(text = reply_msg, quick_reply=quickReply)
         try:
-            line_bot_api.reply_message(reply_token, TextSendMessage(text=reply_msg))
+            line_bot_api.reply_message(reply_token, repply)
         except LineBotApiError as e:
             print(e)
 
-    def send_fsm_graph(reply_token):
+    
+    def send_fsm_graph(self, reply_token):
         try:
             # for demo, hard coded image url, line api only support image over https
             line_bot_api.reply_message(reply_token, ImageSendMessage(original_content_url=FSM_GRAPH_URL, preview_image_url=FSM_GRAPH_URL))
         except LineBotApiError as e:
             print(e)
+
+def makeQuickReplyTexts(texts):
+    replyButtons = []
+    for item in texts:
+        act = MessageAction(item,item)
+        replyButtons.append(QuickReplyButton(action=act))
+    
+    reply = QuickReply(items=replyButtons)
+    return reply 
+
