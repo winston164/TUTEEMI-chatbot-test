@@ -95,6 +95,8 @@ def populateDB():
     Clients = []
     Bookings = []
 
+    db.create_all()
+
     Tutors.append(Tutor(
         name = 'Gabby', 
         picture='https://tuteemi.com/wp-content/uploads/2020/09/TUTEEMI-Gabby-e1600158148501.jpg',
@@ -159,6 +161,9 @@ def populateDB():
     for tut in Tutors:
         db.session.add(tut)
     #Create 50 unique random times in the following month
+    
+    db.session.commit()
+    
     today = datetime.utcnow().replace(minute=0,second=0,microsecond=0,hour=0)
     random.seed(int(datetime.utcnow().timestamp()))
     for i in range(150):
