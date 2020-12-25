@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from transitions.extensions import GraphMachine
+import random
 
 from helper import LineAPI 
 from app import Tutor
@@ -313,7 +314,7 @@ class chatClientFSM(object):
     )
     def on_enter_price(self, reply_token):
         quick_reply = LineAPI.makeQuickReplyTexts([
-            'Tutors'
+            'Tutors',
             'Main'
         ])
         LineAPI.send_reply_message(reply_token,reply_msg=price_text,quickReply=quick_reply)
@@ -322,7 +323,20 @@ class chatClientFSM(object):
         LineAPI.send_reply_message(reply_token, reply_msg="These are some of our tutors:")
         
         #Send carousel of 5 random tutors:
-        Tutor.query()
+        tutor_profiles = Tutor.query.all()
+        tutor_profiles = random.sample(tutor_profiles, 5)
+        elements = [LineAPI.makeCarouselElement(tutor.picture, tutor.name, tutor.rating) 
+                for tutor 
+                in  tutor_profiles]
+        LineAPI.sendCarousel(reply_token, elements)
+        
+        quick_reply = LineAPI.makeQuickReplyTexts([
+            'More Tutors',
+            'Book a class',
+            'Main'
+            ])
+        LineAPI.send_reply_message(reply_token, reply_msg="Time to book a class?", quick_reply)
+        
         
         
 

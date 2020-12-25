@@ -47,7 +47,7 @@ class LineAPI:
         return CarouselColumn(title=name, thumbnail_image_url=pictureURI, text=("Raiting: " + str(rating)), default_action= act) 
 
     @staticmethod
-    def sendCarousel(reply_token, elements: dict):
+    def sendCarousel(reply_token, elements: list):
 
         carousel = CarouselTemplate(elements)
         try:
