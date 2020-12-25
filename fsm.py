@@ -2,8 +2,8 @@ from datetime import datetime
 
 from transitions.extensions import GraphMachine
 
-from helper import LineAPI
-
+from helper import LineAPI 
+from app import Tutor
 
 class TocMachine(GraphMachine):
     def __init__(self):
@@ -124,6 +124,7 @@ class TocMachine(GraphMachine):
             "   Just reply 3 to see fsm graph."
         )
         LineAPI.send_reply_message(reply_token, options_str)
+
 
     def on_enter_question(self, reply_token, text):
         LineAPI.send_reply_message(
@@ -270,13 +271,60 @@ class chatClientFSM(object):
             }
 
         ],
-        "initial": 'init',
+        "initial": 'main',
         "auto_transitions": False,
     }
 
     def __init__(self):
         self.machine = GraphMachine(model=self, **chatClientFSM.fsm_definition)
+    
+    main_menu_text = (
+        "Welcome to TUTEEMI booking system!\n" + 
+        "How may we serve you today?\n" +
+        "You can always go back to this menu by writing 'Main' \n" +
+        "in as your answer\n" +
+        "(Please write any of the following options)\n" +
+        "Main\n" +
+        "-Prices\n"  
+        "-Tutors\n" +
+        "-Book class\n" +
+        "-My schedule\n" +
+        "-Rate class\n" 
+    )
+ 
+    def on_enter_main(self, reply_token):
+        quick_reply = LineAPI.makeQuickReplyTexts([
+            'Prices',
+            'Tutors',
+            'Book class',
+            'My schedule',
+            'Rate class'
+        ])
+        LineAPI.send_reply_message(reply_token, main_menu_text, quickReply=quick_reply)
+    
+    price_text = (
+        "Our current prices are as follows:\n" +
+        "One class for 1000NTD\n" +
+        "10 classes for 10000NTD\n" +
+        "(Responses :\n" +
+        "-Main\n" +
+        "-Tutors\n" +
+        ")\n" 
+    )
+    def on_enter_price(self, reply_token):
+        quick_reply = LineAPI.makeQuickReplyTexts([
+            'Tutors'
+            'Main'
+        ])
+        LineAPI.send_reply_message(reply_token,reply_msg=price_text,quickReply=quick_reply)
 
+    def on_enter_tutors_sample(self,reply_token):
+        LineAPI.send_reply_message(reply_token, reply_msg="These are some of our tutors:")
+        
+        #Send carousel of 5 random tutors:
+        Tutor.query()
+        
+        
 
 if __name__ == '__main__':
     mach = chatClientFSM()
