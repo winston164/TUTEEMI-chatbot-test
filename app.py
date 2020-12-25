@@ -167,10 +167,20 @@ def populateDB():
     today = datetime.utcnow().replace(minute=0,second=0,microsecond=0,hour=0)
     random.seed(int(datetime.utcnow().timestamp()))
     for i in range(150):
+        
         day = random.randrange(0,31)
         hour = random.randrange(9,19)
         tutor_index = random.randrange(0,len(Tutors) - 1)
         date = (today + timedelta(days=day)).replace(hour=hour)
+        posibleCopy = any( booking.tutor_id == Tutors[tutor_index].id and  booking.time.day == day and booking.time.hour == hour for booking in Bookings)
+        while(posibleCopy):
+            day = random.randrange(0,31)
+            hour = random.randrange(9,19)
+            tutor_index = random.randrange(0,len(Tutors) - 1)
+            date = (today + timedelta(days=day)).replace(hour=hour)   
+            print(posibleCopy)
+            posibleCopy = any( booking.tutor_id == Tutors[tutor_index].id and  booking.time.day == day and booking.time.hour == hour for booking in Bookings)
+
         Bookings.append(Booking(
            time = date,
            tutor_id = Tutors[tutor_index].id 
