@@ -53,7 +53,7 @@ class Booking(db.Model):
         return f"Booking(tutor:'{self.tutor.name}', time:'{self.time}', '{'available' if self.available else 'booked' }' , client:'{self.client if self.client else ''}')"
 
 
-from fsm import TocMachine
+from fsm import chatClientFSM
 
 # Handle State Trigger
 def handleTrigger(state, reply_token, user_id, text):
@@ -65,6 +65,37 @@ def handleTrigger(state, reply_token, user_id, text):
     if state == "summation":
         machines[user_id].enter_number(reply_token, text)
 
+
+def transitionState(reply_token, user_id, text):
+    # get machine
+    m = machines[user_id]
+    # get state
+    state = m.state
+
+    # see possible state transitions
+    triggers = m.machine.get_triggers(state)
+
+    if text in triggers:
+        m.trigger(text, reply_token)
+    else:
+        # TODO: loop back to current state
+        m.trigger('to_' + state, reply_token)
+        pass
+
+# TODO: dictionary mapping user texts to trigger words
+userText_to_trigger = {
+    "more tutors": 're_sample',
+    "book a class": 'schedule',
+    "main":'main',
+    "tutors": 'tutors',
+    "prices": 'price_query',
+    "book class": 'schedule',
+    "this week": 'week',
+    "more times": 're_sample',
+    "log in": 'log_in',
+    "go back": 'go_back'
+}
+
 @app.route('/', methods=['GET'])
 def reply():
     return 'Hello, World!'
@@ -73,13 +104,56 @@ def reply():
 @app.route('/', methods=['POST'])
 def receive():
     webhook = json.loads(request.data.decode("utf-8"))
-    reply_token, user_id, message = webhook_parser(webhook)
+    reply_token, user_id, message, isDate = webhook_parser(webhook)
     print(reply_token, user_id, message)
 
     if user_id not in machines:
-        machines[user_id] = TocMachine()
+        machines[user_id] = chatClientFSM()
+        machines[user_id].lineId = user_id
 
-    handleTrigger(machines[user_id].state, reply_token, user_id, message)
+    if machines[user_id].state == 'set_class':
+        if message != 'Log in' :
+            machines[user_id].userName = message
+            message = 'name'
+    
+    if machines[user_id].state == 'registered_client':
+        if message.isnumeric():
+            current_client = Client.query.filter(Client.phone == message).first()
+            if current_client : 
+                machines[user_id].userName = current_client.name
+                machines[user_id].phoneNumber = message
+                message = 'log_success'
+
+            else : 
+                machines[user_id].to_registered_client(reply_token, True)
+                return jsonify({})
+        
+
+    if machines[user_id].state == 'get_phone':
+        if message.isnumeric():
+            machines[user_id].phoneNumber = message
+            message = 'phone'
+        else:
+            machines[user_id].to_get_phone(reply_token, True)
+            return jsonify({})
+
+    if 'SET_BOOKING' in message:
+        machines[user_id].current_booking = Booking.query.get(int(message.split()[1]))
+        message = 'set'
+
+    # handleTrigger(machines[user_id].state, reply_token, user_id, message)
+    message = message.lower()
+    if message in userText_to_trigger.keys():
+        message = userText_to_trigger[message]
+    
+    if isDate:
+        date = datetime.fromisoformat(message)
+        print(date)
+        machines[user_id].dateQuery = date.replace(minute=0, second= 0)
+        message = 'date'
+    
+    
+    transitionState(reply_token=reply_token, user_id = user_id, text = message)
     return jsonify({})
 
 @app.route('/timetreewebhook', methods=['POST'])
