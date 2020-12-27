@@ -100,6 +100,10 @@ userText_to_trigger = {
 def reply():
     return 'Hello, World!'
 
+@app.route('/graphs/<path:path>')
+def graph(path):
+    return send_from_directory('graphs', path)
+
 
 @app.route('/', methods=['POST'])
 def receive():
@@ -110,6 +114,11 @@ def receive():
     if user_id not in machines:
         machines[user_id] = chatClientFSM()
         machines[user_id].lineId = user_id
+
+    if message == 'SHOW_FSM':
+        machines[user_id].get_graph().draw('graphs/'+user_id +'.png', prog='dot', format='png')
+        machines[user_id].send_fsm_graph(reply_token)
+        return jsonify({})
 
     if machines[user_id].state == 'set_class':
         if message != 'Log in' :
@@ -127,8 +136,27 @@ def receive():
             else : 
                 machines[user_id].to_registered_client(reply_token, True)
                 return jsonify({})
-        
 
+    if machines[user_id].state == 'main':   
+        if message.lower() == 'my schedule':
+            client = Client.query.filter(Client.line_id == user_id).first()
+            if client: message = 'registered'
+            else: message = 'not_registered'
+
+    if machines[user_id].state == 'query_schedule':
+        if message.isnumeric():
+            current_client = Client.query.filter(Client.phone == message).first()
+            if current_client and current_client.line_id == user_id: 
+                machines[user_id].userName = current_client.name
+                machines[user_id].phoneNumber = message
+                message = 'confirmed'
+            
+            else : 
+                machines[user_id].to_query_schedule(reply_token, True)
+                return jsonify({})           
+                
+       
+                
     if machines[user_id].state == 'get_phone':
         if message.isnumeric():
             machines[user_id].phoneNumber = message

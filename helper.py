@@ -97,6 +97,10 @@ class LineAPI:
         template = ButtonsTemplate(txt,actions=actions)
         LineAPI.addMessage(reply_token, TemplateSendMessage("button menu", template))
 
+    @staticmethod
+    def sendImageWithURL(reply_token, url:str):
+        message = ImageSendMessage(url,url)
+        LineAPI.addMessage(reply_token, message)
 
     def send_fsm_graph(self, reply_token):
         try:

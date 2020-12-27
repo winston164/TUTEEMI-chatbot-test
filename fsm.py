@@ -25,8 +25,8 @@ class chatClientFSM(object):
             'book_class',
             'query_schedule',
             'show_schedule',
-            'rate_class',
-            'registered_client'
+            'registered_client',
+            'not_user'
         ],
 
         "transitions": [
@@ -149,8 +149,22 @@ class chatClientFSM(object):
                 'trigger': 'go_back',
                 'source': 'registered_client',
                 'dest': 'set_class'
-            }
-
+            },
+            {
+                'trigger': 'registered',
+                'source': 'main',
+                'dest': 'query_schedule'
+            },
+            {
+                'trigger': 'not_registered',
+                'source': 'main',
+                'dest': 'not_user'
+            },
+            {
+                'trigger': 'confirmed',
+                'source': 'query_schedule',
+                'dest': 'show_schedule'
+            },
 
         ],
         "initial": 'main',
@@ -174,8 +188,7 @@ class chatClientFSM(object):
         "-Prices\n"
         "-Tutors\n" +
         "-Book class\n" +
-        "-My schedule\n" +
-        "-Rate class\n"
+        "-My schedule\n"
     )
 
     def on_enter_main(self, reply_token):
@@ -183,8 +196,7 @@ class chatClientFSM(object):
             'Prices',
             'Tutors',
             'Book class',
-            'My schedule',
-            'Rate class'
+            'My schedule'
         ])
         LineAPI.send_reply_message(
             reply_token, chatClientFSM.main_menu_text, quickReply=quick_reply)
@@ -280,7 +292,7 @@ class chatClientFSM(object):
         toTime = self.dateQuery + timedelta(hours=3)
         availableBookings = Booking.query.filter(fromTime < Booking.time).filter(
             Booking.time < toTime).filter(Booking.available).order_by(Booking.time).all()
-        availableBookings = availableBookings[0:( 5 if len(
+        availableBookings = availableBookings[0:(5 if len(
             availableBookings) > 5 else len(availableBookings))]
         elements = []
         for booking in availableBookings:
@@ -344,13 +356,41 @@ class chatClientFSM(object):
         LineAPI.send_reply_message(reply_token, "Is this correct?", qr)
         LineAPI.commitMessages()
 
+    def on_enter_query_schedule(self, reply_token, reEntering: bool = False):
+        from app import Client
+        client = Client.query.filter(Client.line_id == self.lineId).first()
+        LineAPI.send_reply_message(reply_token,
+                                   f"Hi {client.name}, to confirm your identity please input your phone number."
+                                   )
+        if reEntering : LineAPI.send_reply_message(reply_token, "(Wrong number)")
+        LineAPI.commitMessages()
+    
+    def on_enter_show_schedule(self,reply_token):
+        from app import Client
+        client = Client.query.filter(Client.line_id == self.lineId).first()
+        message = ""
+        bookings = client.bookings
+        for booking in bookings:
+            message = message + f"Class with tutor {booking.tutor.name} at {booking.time.hour}:00  on the {booking.time.month}/{booking.time.day}.\n"
+        LineAPI.send_reply_message(reply_token, message, LineAPI.makeQuickReplyTexts([
+            'Main'
+        ]))
+        LineAPI.commitMessages()
+
+    def on_enter_not_user(self, reply_token):
+        LineAPI.send_reply_message(reply_token, "Sorry you're not a user yet, book a class to become a registered user",
+        LineAPI.makeQuickReplyTexts([
+            'Main'
+        ]))
+    
     def on_enter_book_class(self, reply_token):
         # TODO: Add booking logic
         # Add client to the database table
         from app import Client, Booking, db
         client = Client.query.filter(Client.line_id == self.lineId).first()
-        if not client: client = Client(line_id=self.lineId, name=self.userName,
-                        phone=self.phoneNumber)
+        if not client:
+            client = Client(line_id=self.lineId, name=self.userName,
+                            phone=self.phoneNumber)
         db.session.add(client)
         db.session.commit()
 
@@ -361,28 +401,34 @@ class chatClientFSM(object):
         db.session.commit()
 
         # Send event to TimeTree
-        token = getAccessToken("250", 
-            booking.tutor.timetree_id)
+        token = getAccessToken("250",
+                               booking.tutor.timetree_id)
         print(token)
         res = create_event(token,
-                     f"{booking.tutor.name}'s class with {client.name}",
-                     booking.time,
-                     (booking.time + timedelta(hours=1)),
-                     f"Scheduled class with {client.name}\n" +
-                     "Contact info: \n" +
-                     f"Phone number: {client.phone}")
+                           f"{booking.tutor.name}'s class with {client.name}",
+                           booking.time,
+                           (booking.time + timedelta(hours=1)),
+                           f"Scheduled class with {client.name}\n" +
+                           "Contact info: \n" +
+                           f"Phone number: {client.phone}")
         print(res)
 
         # Send response to Client
-        LineAPI.send_reply_message(reply_token, 
-        "Thanks for trusting us with your learning. \n"+
-        f"{booking.tutor.name} will soon " +
-        "be contacting you for setting up the meeting. \n" + 
-        "Have a nice day.", 
-        LineAPI.makeQuickReplyTexts([
-            'Main'
-        ]))
+        LineAPI.send_reply_message(reply_token,
+                                   "Thanks for trusting us with your learning. \n" +
+                                   f"{booking.tutor.name} will soon " +
+                                   "be contacting you for setting up the meeting. \n" +
+                                   "Have a nice day.",
+                                   LineAPI.makeQuickReplyTexts([
+                                       'Main'
+                                   ]))
         LineAPI.commitMessages()
+
+        def send_fsm_graph(self, reply_token):
+            LineAPI.sendImageWithURL(reply_token, "https://tuteemi-test.herokuapp.com/graphs/" + self.lineId + ".png" )
+            LineAPI.commitMessages()
+
+
 
 if __name__ == '__main__':
     mach = chatClientFSM()
