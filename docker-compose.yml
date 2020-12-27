@@ -8,5 +8,6 @@ services:
         - LINE_CHANNEL_ACCESS_TOKEN
         - LINE_CHANNEL_SECRET
         - FLASK_ENV
+        - SECRET_KEY
     ports:
         - "5000:5000"
