@@ -1,29 +1,30 @@
-# FSM Line ChatBot
+# TUTTEMI booking chatbot
 
-LineBot example for NCKU CSIE Theory of Computation 2020 fall semester course. 
-
-## LineBot
-
-![](https://i.imgur.com/1L4jSSv.png)
-
-Name: **NCKU-TOC-TA**
-Add friend: https://lin.ee/ZWBMtvM
-
-### Screenshots
-![](https://i.imgur.com/zVpNYzd.png)
-![](https://i.imgur.com/T6M2Emp.png)
-![](https://i.imgur.com/eYjbAHu.png)
-
+Tuteemi is a company dedicated to booking bilingual tutors with users.
 
 ## Features
-* Collect students question
-    * Portal for project related question 
-* Summation Calculator
-* FSM Graph of current LineBot app
+Some of the features are:
+* Find out more about prices and tutors
+* Book a class with a tutor in the following week or a specific date
+* Look at your schedule
+
+## Graph 
+The finite state machine looks as follows:
+![FSM Graph](https://tuteemi-test.herokuapp.com/graphs/Ucb9b7f4e1986ecc6e013bd1b6f314293.png)
 
 ## How to start
-1. Edit `sample.env` then rename it to `.env`
-2. Push code to [Heroku Container Registry](https://devcenter.heroku.com/articles/container-registry-and-runtime)
+1. Make a .env file in the base directory with the following variables
+    * LINE_CHANNEL_ACCESS_TOKEN= (your line access token from line console)
+    * LINE_CHANNEL_SECRET= (your line channel secret from line console)
+    * FLASK_ENV=development
+    * SECRET_KEY=(secret key for your database, any random key is ok)
+2. Install graphviz on your system 
+3. Install requirements with "pip install -r requirtements.txt"
+4. Use populateDB funciton in app to populate the database with dummy data
+5. Download and use ngrok to tunnel port 5000
+6. Run "python app.py"
+
+
 
 ## Author
-Chai-Shi, Chang
+Winston Bendana
