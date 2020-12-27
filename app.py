@@ -116,7 +116,7 @@ def receive():
         machines[user_id].lineId = user_id
 
     if message == 'SHOW_FSM':
-        machines[user_id].get_graph().draw('graphs/'+user_id +'.png', prog='dot', format='png')
+        # machines[user_id].get_graph().draw('graphs/'+user_id +'.png', prog='dot', format='png')
         machines[user_id].send_fsm_graph(reply_token)
         return jsonify({})
 

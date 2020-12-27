@@ -425,7 +425,7 @@ class chatClientFSM(object):
         LineAPI.commitMessages()
 
         def send_fsm_graph(self, reply_token):
-            LineAPI.sendImageWithURL(reply_token, "https://tuteemi-test.herokuapp.com/graphs/" + self.lineId + ".png" )
+            LineAPI.sendImageWithURL(reply_token, "https://tuteemi-test.herokuapp.com/graphs/Ucb9b7f4e1986ecc6e013bd1b6f314293.png")
             LineAPI.commitMessages()
 
 
