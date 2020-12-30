@@ -27,6 +27,7 @@ class chatClientFSM(object):
             'show_schedule',
             'registered_client',
             'not_user'
+            'all_bookings'
         ],
 
         "transitions": [
@@ -165,7 +166,11 @@ class chatClientFSM(object):
                 'source': 'query_schedule',
                 'dest': 'show_schedule'
             },
-
+            {
+                'trigger': 'all_schedule',
+                'source': 'main',
+                'dest': 'all_bookings'
+            }
         ],
         "initial": 'main',
     }
@@ -422,6 +427,17 @@ class chatClientFSM(object):
                                    LineAPI.makeQuickReplyTexts([
                                        'Main'
                                    ]))
+        LineAPI.commitMessages()
+
+    def on_enter_all_bookings(self, reply_token):
+        from app import Booking
+        bookings = Booking.query.all()
+        message = ""
+        for i, booking in enumerate(bookings):
+            if i < 10:
+                message = (message + 
+                    f"Booking id: {booking.id}, tutor {booking.tutor.name} with {booking.client.name}\n")
+        LineAPI.send_reply_message(reply_token,message)
         LineAPI.commitMessages()
 
     def send_fsm_graph(self, reply_token):
