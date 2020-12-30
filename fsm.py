@@ -26,7 +26,7 @@ class chatClientFSM(object):
             'query_schedule',
             'show_schedule',
             'registered_client',
-            'not_user'
+            'not_user',
             'all_bookings'
         ],
 
@@ -431,10 +431,11 @@ class chatClientFSM(object):
 
     def on_enter_all_bookings(self, reply_token):
         from app import Booking
-        bookings = Booking.query.all()
+        bookings = Booking.query.filter(Booking.available == False).all()
         message = ""
+        print(bookings)
         for i, booking in enumerate(bookings):
-            if i < 10:
+            if i < 10 and booking:
                 message = (message + 
                     f"Booking id: {booking.id}, tutor {booking.tutor.name} with {booking.client.name}\n")
         LineAPI.send_reply_message(reply_token,message)
