@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from transitions.extensions import GraphMachine
+from transitions import Machine
 import random
 
 from helper import LineAPI
@@ -176,7 +176,7 @@ class chatClientFSM(object):
     }
 
     def __init__(self):
-        self.machine = GraphMachine(model=self, **chatClientFSM.fsm_definition)
+        self.machine = Machine(model=self, **chatClientFSM.fsm_definition)
         self.dateQuery = datetime.utcnow()
         self.current_booking = None
         self.userName = ""
@@ -441,12 +441,8 @@ class chatClientFSM(object):
         LineAPI.send_reply_message(reply_token,message)
         LineAPI.commitMessages()
 
-    def send_fsm_graph(self, reply_token):
-        LineAPI.sendImageWithURL(reply_token, "https://tuteemi-test.herokuapp.com/graphs/Ucb9b7f4e1986ecc6e013bd1b6f314293.png")
-        LineAPI.commitMessages()
 
 
 
 if __name__ == '__main__':
     mach = chatClientFSM()
-    mach.get_graph().draw('fsm_test.png', prog='dot', format='png')

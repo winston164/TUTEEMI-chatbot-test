@@ -1,5 +1,5 @@
 
 .env
 __pycache__
-env
+/env
 tuteemi_color version LOGO.png

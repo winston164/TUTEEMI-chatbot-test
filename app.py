@@ -108,17 +108,16 @@ def graph(path):
 @app.route('/', methods=['POST'])
 def receive():
     webhook = json.loads(request.data.decode("utf-8"))
+    print(len(webhook["events"]))
+    if len(webhook["events"]) < 1:
+        return jsonify({})
+
     reply_token, user_id, message, isDate = webhook_parser(webhook)
     print(reply_token, user_id, message)
 
     if user_id not in machines:
         machines[user_id] = chatClientFSM()
         machines[user_id].lineId = user_id
-
-    if message == 'SHOW_FSM':
-        # machines[user_id].get_graph().draw('graphs/'+user_id +'.png', prog='dot', format='png')
-        machines[user_id].send_fsm_graph(reply_token)
-        return jsonify({})
 
     if machines[user_id].state == 'set_class':
         if message != 'Log in' :

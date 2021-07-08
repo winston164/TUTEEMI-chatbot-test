@@ -1,7 +1,7 @@
 version: '3'
 services:
   linebot:
-    image: toc:latest
+    image: toc:slim
     container_name: linebot
     restart: always
     environment: 
