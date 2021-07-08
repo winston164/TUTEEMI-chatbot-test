@@ -191,10 +191,9 @@ def timetreewebhook():
 
 
 
-def populateDB():
+def populateDB_scratch():
+    
     Tutors = []
-    Clients = []
-    Bookings = []
 
     db.create_all()
 
@@ -264,7 +263,11 @@ def populateDB():
     #Create 50 unique random times in the following month
     
     db.session.commit()
+    populateDB()
     
+def populateDB():
+    Tutors = Tutor.query.all()
+    Bookings = []
     today = datetime.utcnow().replace(minute=0,second=0,microsecond=0,hour=0)
     random.seed(int(datetime.utcnow().timestamp()))
     for i in range(150):

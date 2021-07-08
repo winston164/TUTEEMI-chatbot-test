@@ -265,9 +265,16 @@ class chatClientFSM(object):
     def on_enter_sample_week(self, reply_token):
         today = datetime.utcnow().replace(hour=0, minute=0, second=0)
         plusOneWeek = today + timedelta(days=7)
-        from app import Booking
+        from app import Booking, populateDB
         availableBookings = Booking.query.filter(today < Booking.time).filter(
             Booking.time < plusOneWeek).filter(Booking.available).all()
+
+        if len(availableBookings) < 1:
+            populateDB()
+            availableBookings = Booking.query.filter(today < Booking.time).filter(
+                Booking.time < plusOneWeek).filter(Booking.available).all()
+
+
         availableBookings = random.sample(availableBookings, 5 if len(
             availableBookings) > 5 else (len(availableBookings) - 1))
         elements = []
@@ -292,11 +299,17 @@ class chatClientFSM(object):
         LineAPI.commitMessages()
 
     def on_enter_available_tutors(self, reply_token):
-        from app import Booking
+        from app import Booking, populateDB
         fromTime = self.dateQuery - timedelta(hours=3)
         toTime = self.dateQuery + timedelta(hours=3)
         availableBookings = Booking.query.filter(fromTime < Booking.time).filter(
             Booking.time < toTime).filter(Booking.available).order_by(Booking.time).all()
+
+        if len(availableBookings) < 1:
+            populateDB()
+            availableBookings = Booking.query.filter(fromTime < Booking.time).filter(
+                Booking.time < toTime).filter(Booking.available).order_by(Booking.time).all()
+
         availableBookings = availableBookings[0:(5 if len(
             availableBookings) > 5 else len(availableBookings))]
         elements = []
